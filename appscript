@@ -1,0 +1,99 @@
+function doPost(e) {
+  
+  // Ensure that the event object and postData are defined
+  if (e && e.postData) {
+    try {
+      // Parse the incoming URL-encoded form data
+      var postData = e.postData.contents.split('&').reduce(function (acc, pair) {
+        var parts = pair.split('=');
+        acc[parts[0]] = decodeURIComponent(parts[1].replace(/\+/g, ' '));
+        return acc;
+      }, {});
+      
+      // Open the Google Sheet by its ID
+      var ss = SpreadsheetApp.openById('googlesheet id');
+      
+      // Get the current date
+      var currentDate = new Date();
+      
+      // Get the current month and year
+      var currentMonth = currentDate.getMonth() + 1; // Month is 0-based, so adding 1
+      var currentYear = currentDate.getFullYear();
+      
+      // Define the sheet name based on the current month and year
+      var sheetName = currentMonth + "-" + currentYear;
+      
+      // Check if the sheet exists, otherwise create a new one
+      var sheet = ss.getSheetByName(sheetName);
+      if (!sheet) {
+        sheet = ss.insertSheet(sheetName);
+        // Add headers if the sheet is newly created
+        var headers = ['Timestamp', 'State', 'Outlet', 'Invoice Date', 'Qty SSEC', 'Restock SSEC', 'Qty R SSEC', 'Qty SGIB', 'Restock SGIB', 'Qty R SGIB', 'Qty BS VPSSEC', 'Restock VPSSEC', 'Qty R VPSSEC', 'Qty VPMS', 'Restock VPMS', 'Qty R VPMS', 'Qty BS VPMO', 'Restock VPMO', 'Qty VPMO', 'Remarks'];
+        sheet.appendRow(headers);
+
+          sheet.getRange(1, 1, 1, headers.length).setBackground("#ffff99"); 
+      }
+      
+      // Log the form data to the sheet
+      var rowData = [
+        new Date(),
+        postData.state,
+        postData.outlet,
+        postData.invoiceDate,
+        postData.qtyBs,
+        postData.restockOption,
+        postData.qtyR,
+        postData.qtyBs1,
+        postData.restockOption1,
+        postData.qtyR1,
+        postData.qtyBs2,
+        postData.restockOption2,
+        postData.qtyR2,
+        postData.qtyBs3,
+        postData.restockOption3,
+        postData.qtyR3, 
+        postData.qtyBs4,
+        postData.restockOption4,
+        postData.qtyR4,
+        postData.remarks
+      ];
+      
+      sheet.appendRow(rowData);
+      
+        // Check if restockOption is 'Yes' and change background color accordingly
+      if (postData.restockOption === 'Yes') {
+        var lastRow = sheet.getLastRow();
+        var range = sheet.getRange(lastRow, 6, 1, 2); // Assuming restockOption is in column F
+        range.setBackground("#ffc8c8"); // Red
+      }
+
+
+      // Check each restockOption field and change background color accordingly
+      for (var i = 0; i < 5; i++) {
+        var option = postData['restockOption' + i];
+        if (option === 'Yes') {
+          var lastRow = sheet.getLastRow();
+          var range = sheet.getRange(lastRow, 6 + (i * 3), 1, 2); // Assuming restockOption is in column F, and each option spans 3 columns
+          range.setBackground(getColor(i)); // Change background color based on option index
+        }
+      }
+      // Respond with success status
+      return ContentService.createTextOutput("SUCCESS").setMimeType(ContentService.MimeType.TEXT);
+    } catch (error) {
+      // Log and respond with an error status
+      Logger.log("Error processing form data: " + error);
+      return ContentService.createTextOutput("ERROR").setMimeType(ContentService.MimeType.TEXT);
+    }
+  } else {
+    // Respond with an invalid request status
+    Logger.log("Invalid or missing event object.");
+    return ContentService.createTextOutput("INVALID_REQUEST").setMimeType(ContentService.MimeType.TEXT);
+  }
+
+}
+
+// Function to determine background color based on option index
+function getColor(index) {
+  var colors = ['#ffc8c8', '#e1f7d8', '#f7eed8', '#eed8f7', '#c0d8e4']; // Example colors for each option
+  return colors[index];
+}
