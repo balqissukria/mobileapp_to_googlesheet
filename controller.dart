@@ -3,7 +3,7 @@ import 'form.dart';
 
 class FormController {
   static const String URL =
-      "https://script.google.com/macros/s/AKfycbw6a0HeA6NNZlpJle35xImFkGAScTHWM9iHzoC2Lfs397ImCg162BR7KNIWJZxK-sf5/exec";
+      "appscript url";
   static const status_success = "SUCCESS";
 
   void submitForm(SuForm suForm, void Function(String) callback) async {
